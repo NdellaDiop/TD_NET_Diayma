@@ -18,38 +18,65 @@ Pour exécuter le projet correctement, l'installation du SDK .NET Core 2.1 est n
 Commande d'installation : sudo apt update , sudo apt install dotnet-sdk-2.1
 
 ## 5. Dépôt GitHub personnel
-https://github.com/[TON_PSEUDO_GITHUB]/BoutiqueDiayma2025-TD
+https://github.com/NdellaDiop/TD_NET_Diayma
 
 ## 6. Deux bugs trouvés (exploration)
-1. **Panier non persistant** → Après ajout d’un produit, F5 → panier vide (session non activée)
-2. **Prix total toujours 0 dans le panier** → bug dans Cart.cs (ligne GetTotalValue pas implémentée correctement)
+1. Langue espagnol non prise en compte
+2. Problème de Stock après Commande
 
 ## 7. Points d’arrêt placés et testés
-- CartSummaryViewComponent.cs → ligne 12  
-- ProductController.cs → ligne 15  
-- OrderController.cs → ligne 17  
-- CartController.cs → ligne 15  
-- Startup.cs → ligne 20  
+- CartSummaryViewComponent.cs → ligne 12
+- ProductController.cs → ligne 15
+- OrderController.cs → ligne 17
+- CartController.cs → ligne 15
+- Startup.cs → ligne 20
 
 Tous déclenchés en navigation normale.
 
 
-## 8. Trace détaillée au démarrage (F11 pas à pas détaillé)
-Namespaces / classes / méthodes traversées avant affichage produits :
+## 8. Quels sont les namespaces, classes et méthodes visités avant l’affichage des produits sur l’écran d’accueil de votre navigateur ? Choisissez le mode approprié selon le contexte, "Pas à pas détaillé", "Pas à pas principal" ou "Pas à pas sortant". Namespaces / classes / méthodes traversées avant affichage produits :
 
-1. `Program.cs` → `Main()` → `CreateHostBuilder().Build().Run()`
-2. `Startup.cs` → `ConfigureServices()` → enregistrement DbContext + Repository
-3. `Startup.cs` → `Configure()` → UseRouting + UseEndpoints
-4. `ProductController.Index()` → appelé par défaut
-5. `ProductController` ligne 15 → `_repo.Products.ToList()`
-6. EF Core génère SQL → SELECT * FROM Products
-7. Retour View() → Views/Product/Index.cshtml
-8. Layout appelle → `CartSummaryViewComponent.Invoke()` ligne 12
+Le mode de débogage le plus approprié est le "Pas à pas détaillé" (Step Into ou F11), car il permet d'entrer dans l'implémentation de chaque méthode (comme le chargement des données ou l'initialisation des composants) pour observer le flux complet du code.
+
+Voici la séquence des appels exécutés par le framework MVC avant que la page d'accueil de la boutique ne soit affichée :
+
+Séquence d'appels visités
+
+    Phase d'Initialisation (Démarrage)
+
+        Namespace/Classe/Méthode : P2FixAnAppDotNetCode.Startup.ConfigureServices()
+
+        Rôle : Le framework configure les services nécessaires, notamment l'injection de dépendances pour les contrôleurs et les composants (ICart, IProductRepository, etc.).
+
+    Phase d'Exécution de la Route
+
+        Namespace/Classe/Méthode : P2FixAnAppDotNetCode.Controllers.ProductController.Index()
+
+        Rôle : Le système de routage reconnaît la racine (/) et exécute l'action par défaut, qui est la méthode Index() du ProductController.
+
+    Phase de Chargement des Données
+
+        Namespace/Classe/Méthode : P2FixAnAppDotNetCode.Models.ProductRepository.GetAllProducts()
+
+        Rôle : La méthode du contrôleur appelle la couche de données (le Repository) pour récupérer la liste des produits à afficher sur l'écran.
+
+    Phase d'Affichage du Composant de Vue
+
+        Namespace/Classe/Méthode : P2FixAnAppDotNetCode.Components.CartSummaryViewComponent.Invoke()
+
+        Rôle : Avant de rendre la vue principale, le composant de vue (appelé par un tag dans le code HTML de la page) est exécuté pour générer le résumé du panier.
+
+    Phase de Rendu de la Vue
+
+        Namespace/Classe/Méthode : P2FixAnAppDotNetCode.Controllers.ProductController.View(products)
+
+        Rôle : La méthode Index retourne le résultat, passant le modèle de données à la vue (fichier .cshtml) pour que le HTML soit généré et envoyé au navigateur.
+
 9. Affichage final du panier (vide car bug)
 
 → 12 étapes parcourues en mode "Pas à pas détaillé" (F11)
 
 ## 9. Exécutable Windows publié (single file)
 Commande exécutée :
-```bash
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+/home/ndella/dotnet/dotnet publish Diayma.csproj --self-contained -r win-x64 -c Release --output ../DeployWindows
+
